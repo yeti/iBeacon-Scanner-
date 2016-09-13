@@ -12,3 +12,8 @@ Dean's README:
 
 To run the bluetooth scanner that'll send stuff to firebase, just run
 `sudo python testblescan.py`.
+
+Sarada's README:
+To run a the python program that will increment a user's score on firebase when
+in range of a beacon, run 'sudo python testblescan-scores.py'
+
