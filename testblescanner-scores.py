@@ -18,33 +18,41 @@ except:
 	print "error accessing bluetooth device..."
     	sys.exit(1)
 
-firebase = firebase.FirebaseApplication('https://ble-prototype.firebaseio.com', None)
+myfirebase = firebase.FirebaseApplication('https://ble-prototype.firebaseio.com', None)
 blescan.hci_le_set_scan_parameters(sock)
 blescan.hci_enable_le_scan(sock)
-# count = 50
-# existing_beacon_UUIDs = []
+
+range_beacons = list()
+
+# continuously scans form new beacons
 while True:
-	current_beacon = ''
-	last_user = {'name': ''}
-	returnedList = blescan.parse_events(sock, 10)
-	for beacon in returnedList:
-		print "Beacon found"
-		print beacon
-		print "============="
+	returned_beacons = blescan.parse_events(sock, 10)
+	returned_beacon_ids = []
+	# parse the ids from all nearby beacons
+	for beacon in returned_beacons:
 		beacon_arr = beacon.split(',')
-		combined_id = ".".join(beacon_arr[1:4]).upper()
-		found_user = lookup_user(combined_id)
-		if found_user is not None and not (found_user['name'] == last_user["name"]):
-			print "New Beacon"
-			print "==============="
-			last_user = found_user
-			current_beacon = combined_id
-			user = firebase.get('/levelTest', None)
+		beacon_id = "".join(beacon_arr[1:4]).upper()
+		returned_beacon_ids.append(beacon_id)
+	# for each id nearby
+	for beacon_id in returned_beacon_ids:
+		# if the becaon wasn't already in range of pi
+		if beacon_id not in range_beacons:
+			user = myfirebase.get('/users/{}'.format(beacon_id), None)
+			# checks that user exists
 			if user is not None:
-				print user
+				print "Incrementing " + user['name'] + "'s Score"
 				print "============"
-				print "Incrementing Score"
-				print "============"
-				jsonResponse = user
-				jsonResponse['score'] = jsonResponse['score'] + 1
-				requests.put('https://ble-prototype.firebaseio.com/levelTest.json', data=json.dumps(jsonResponse))
+				user['score'] = user['score'] + 10
+				if 'rockClimbing' in user['experiences']:
+					user['experiences']['rockClimbing']['visits'] = user['experiences']['rockClimbing']['visits'] + 1
+					if user['experiences']['rockClimbing']['visits'] is 5:
+						user['badges']['climber'] = {'name': 'Matterhorn Badge', 'description': 'You\'ve climbed a lot of mountains!', 'image': 'http://67.media.tumblr.com/76bca31ad8f75d1f4931cddd8aeb4354/tumblr_nhz3v1C6oI1rha3vbo1_500.png'}
+				else:
+					user['experiences']['rockClimbing'] = {'visits': 1}
+
+				requests.put('https://ble-prototype.firebaseio.com/users/{}.json'.format(beacon_id), data=json.dumps(user))
+			range_beacons.append(beacon_id)
+
+	for beacon in range_beacons:
+		if beacon not in returned_beacon_ids:
+			range_beacons.remove(beacon)
