@@ -38,25 +38,33 @@ while True:
 		# if the beacon wasn't already in range of pi
 		if beacon_id not in range_beacons:
 			user = myfirebase.get('/users/{}'.format(beacon_id), None)
+
 			# checks that user exists
 			if user is not None:
+				range_beacons.append(beacon_id)
 				print "Incrementing " + user['name'] + "'s Score"
 				print "============"
 				user['score'] = user['score'] + 10
-				if 'rockClimbing' in user['experiences']:
-					user['experiences']['rockClimbing']['visits'] = user['experiences']['rockClimbing']['visits'] + 1
-					climbing_badges = myfirebase.get('/attractions/whiteWaterRiverRapids/badges', None)
-					if user['experiences']['whiteWaterRiverRapids']['visits'] is 2:
-						user['badges']['colorado'] = climbing_badges['colorado']
-					elif user['experiences']['whiteWaterRiverRapids']['visits'] is 4:
-						user['badges']['zambezi'] = climbing_badges['zambezi']
+				attraction = myfirebase.get('/attractions/rapidRush', None)
 
+				if 'rapidRush' in user['experiences']:
+					user['experiences']['rapidRush']['visits'] = user['experiences']['rapidRush']['visits'] + 1
+					if user['experiences']['rapidRush']['visits'] is 3:
+						user['badges']['zambezi'] = attraction['badges']['zambezi']
+					elif user['experiences']['rapidRush']['visits'] is 2:
+						user['badges']['spotTheBear'] = attraction['badges']['spotTheBear']
 				else:
-					user['experiences']['whiteWaterRiverRapids'] = {'visits': 1}
+					user['experiences']['rapidRush'] = {'visits': 1}
+					user['badges']['colorado'] = attraction['badges']['colorado']
 
 				requests.put('https://ble-prototype.firebaseio.com/users/{}.json'.format(beacon_id), data=json.dumps(user))
-			range_beacons.append(beacon_id)
+				attraction['user'] = user
+				requests.put('https://ble-prototype.firebaseio.com/attractions/rapidRush.json', data=json.dumps(attraction))
+
 
 	for beacon in range_beacons:
 		if beacon not in returned_beacon_ids:
+			print "User out of range!"
+			print "==============="
+			myfirebase.delete('/attractions/rapidRush/user', None)
 			range_beacons.remove(beacon)
