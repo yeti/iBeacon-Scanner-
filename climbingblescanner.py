@@ -24,7 +24,7 @@ blescan.hci_enable_le_scan(sock)
 
 range_beacons = list()
 
-# continuously scans form new beacons
+# continuously scans for new beacons
 while True:
 	returned_beacons = blescan.parse_events(sock, 10)
 	returned_beacon_ids = []
@@ -35,7 +35,7 @@ while True:
 		returned_beacon_ids.append(beacon_id)
 	# for each id nearby
 	for beacon_id in returned_beacon_ids:
-		# if the becaon wasn't already in range of pi
+		# if the beacon wasn't already in range of pi
 		if beacon_id not in range_beacons:
 			user = myfirebase.get('/users/{}'.format(beacon_id), None)
 			# checks that user exists
