@@ -44,27 +44,27 @@ while True:
 				range_beacons.append(beacon_id)
 				print "Incrementing " + user['name'] + "'s Score"
 				print "============"
-				user['score'] = user['score'] + 10
-				attraction = myfirebase.get('/attractions/rapidRush', None)
+				user['score'] = user['score'] + 25
+				attraction = myfirebase.get('/attractions/volcanoJamboree', None)
 
-				if 'rapidRush' in user['experiences']:
-					user['experiences']['rapidRush']['visits'] = user['experiences']['rapidRush']['visits'] + 1
-					if user['experiences']['rapidRush']['visits'] is 2:
-						user['badges']['colorado'] = attraction['badges']['colorado']
-					elif user['experiences']['rapidRush']['visits'] is 3:
-						user['badges']['spotTheBear'] = attraction['badges']['spotTheBear']
+				if 'volcanoJamboree' in user['experiences']:
+					user['experiences']['volcanoJamboree']['visits'] = user['experiences']['volcanoJamboree']['visits'] + 1
+					if user['experiences']['volcanoJamboree']['visits'] is 2:
+						user['badges']['diamond'] = attraction['badges']['diamond']
+					elif user['experiences']['volcanoJamboree']['visits'] is 3:
+						user['badges']['star'] = attraction['badges']['star']
 				else:
-					user['experiences']['rapidRush'] = {'visits': 1}
-					user['badges']['firstBadge'] = attraction['badges']['firstBadge']
+					user['experiences']['volcanoJamboree'] = {'visits': 1}
+					user['badges']['mountHaleakala'] = attraction['badges']['mountHaleakala']
 
 				requests.put('https://ble-prototype.firebaseio.com/users/{}.json'.format(beacon_id), data=json.dumps(user))
 				attraction['user'] = user
-				requests.put('https://ble-prototype.firebaseio.com/attractions/rapidRush.json', data=json.dumps(attraction))
+				requests.put('https://ble-prototype.firebaseio.com/attractions/volcanoJamboree.json', data=json.dumps(attraction))
 
 
 	for beacon in range_beacons:
 		if beacon not in returned_beacon_ids:
 			print "User out of range!"
 			print "==============="
-			myfirebase.delete('/attractions/rapidRush/user', None)
+			myfirebase.delete('/attractions/volcanoJamboree/user', None)
 			range_beacons.remove(beacon)
